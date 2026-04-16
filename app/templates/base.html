@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>個人記帳簿</title>
+    <!-- Google Fonts 現代字體 -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome icon 設定 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 本地樣式檔案 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('routes.index') }}" class="brand">
+                <i class="fa-solid fa-wallet"></i> 個人記帳簿
+            </a>
+            <div class="nav-links">
+                <a href="{{ url_for('routes.add') }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> 新增紀錄</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container main-content">
+        <!-- 顯示 Flash 通知訊息 -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- 頁面各別內容區塊 -->
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- 腳本區：3 秒後自動隱藏通知 -->
+    <script>
+        document.querySelectorAll('.alert').forEach(alert => {
+            setTimeout(() => {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 300);
+            }, 3000);
+        });
+    </script>
+</body>
+</html>

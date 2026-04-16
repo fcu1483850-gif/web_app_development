@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="card summary-card balance-card">
+        <div class="card-icon"><i class="fa-solid fa-sack-dollar"></i></div>
+        <div class="card-info">
+            <h3>目前總餘額</h3>
+            <p class="amount {% if balance >= 0 %}positive{% else %}negative{% endif %}">$ {{ "{:,.0f}".format(balance) }}</p>
+        </div>
+    </div>
+    <div class="card summary-card income-card">
+        <div class="card-icon"><i class="fa-solid fa-arrow-trend-up"></i></div>
+        <div class="card-info">
+            <h3>總收入</h3>
+            <p class="amount positive">$ {{ "{:,.0f}".format(income) }}</p>
+        </div>
+    </div>
+    <div class="card summary-card expense-card">
+        <div class="card-icon"><i class="fa-solid fa-arrow-trend-down"></i></div>
+        <div class="card-info">
+            <h3>總支出</h3>
+            <p class="amount negative">$ {{ "{:,.0f}".format(expense) }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="records-section card">
+    <div class="records-header">
+        <h2>最近餘額異動</h2>
+    </div>
+    
+    {% if records %}
+    <div class="table-responsive">
+        <table class="records-table">
+            <thead>
+                <tr>
+                    <th>日期</th>
+                    <th>類別</th>
+                    <th>備註</th>
+                    <th class="text-right">金額</th>
+                    <th class="text-center">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                <tr class="record-row {{ record.type }}">
+                    <td>{{ record.date }}</td>
+                    <td><span class="badge badge-{{ record.category }}">{{ record.category }}</span></td>
+                    <td class="desc">{{ record.description }}</td>
+                    <td class="text-right amount-col">
+                        {% if record.type == 'income' %}
+                            <span class="positive">+ $ {{ "{:,.0f}".format(record.amount) }}</span>
+                        {% else %}
+                            <span class="negative">- $ {{ "{:,.0f}".format(record.amount) }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center actions">
+                        <a href="{{ url_for('routes.edit', record_id=record.id) }}" class="icon-btn edit"><i class="fa-solid fa-pen"></i></a>
+                        <form action="{{ url_for('routes.delete', record_id=record.id) }}" method="POST" class="inline-form" onsubmit="return confirm('確定要永久刪除這筆紀錄嗎？');">
+                            <button type="submit" class="icon-btn delete"><i class="fa-solid fa-trash"></i></button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+        <p>目前還沒有任何財務紀錄，請嘗試新增一筆資料！</p>
+        <a href="{{ url_for('routes.add') }}" class="btn btn-primary">記下第一筆帳</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
