@@ -1,83 +1,83 @@
-# 系統架構設計 (ARCHITECTURE)
-
-根據 PRD，本專案為「校園美食推薦平台」，為提供初學者友善且可在一週內完成的開發環境，我們選用 Flask + Jinja2 + SQLite 作為核心技術，不採用前後端分離，統一由 Flask 控制視圖渲染。
+# 系統架構設計文件 (Architecture)
 
 ## 1. 技術架構說明
-
-### 選用技術與原因
+本專案為「個人記帳簿」，採用以下技術棧進行開發：
 - **後端框架：Python + Flask**
-  - 原因：Flask 輕量、彈性大，適合快速打造 Prototype。且 Python 語法直觀，適合初學者學習並實作地圖、搜尋及資料庫連結等邏輯。
+  身為輕量級的 Web 框架，Flask 適合快速開發 MVP，並且不需要過度臃腫的專案設定。
 - **模板引擎：Jinja2**
-  - 原因：內建於 Flask 中，能夠直接在 HTML 裡面撰寫迴圈與條件判斷（如列出餐廳清單、判斷是否登出或登入），能不依賴複雜的前端框架快速渲染動態頁面。
-- **資料庫：SQLite (可透過 SQLAlchemy ORM操作)**
-  - 原因：無需額外安裝或設定大型關聯式資料庫伺服器，且資料儲存在單一檔案中，方便備份與除錯。
-- **前端呈現：HTML + Vanilla CSS + JavaScript**
-  - 原因：搭配地圖 API（如 Google Maps SDK 或 Leaflet.js），可以有效客製化標記，同時保持介面輕量且不用處理複雜的建置流程。
+  專案採用 Server-Side Rendering (SSR)，由 Flask 與 Jinja2 合作，在伺服器端將資料與 HTML 結合並渲染後直接回傳給瀏覽器顯示，不採用前後端分離架構。
+- **資料庫：SQLite**
+  適合中小型輕量專案，只需單一檔案存放資料，不須建置額外的資料庫伺服器服務。
+- **前端技術：HTML + CSS + Vanilla JS**
+  透過原生的網頁開發技術呈現畫面，運用簡單的 JS 進行表單驗證與基礎互動。
 
-### Flask MVC 模式說明
-雖然 Flask 不像某些框架強制嚴格的 MVC，但我們仍依循此概念規劃：
-- **Model (資料模型)**：負責定義資料庫結構及存取邏輯。如：`Restaurant`（餐廳）、`Review`（評論）。
-- **View (視圖/模板)**：負責呈現給使用者看的畫面。由 HTML 與 Jinja2 (`templates/`) 組成，接收 Controller 傳來的資料並渲染。
-- **Controller (路由/控制邏輯)**：處理使用者的請求（Request）。由 Flask 的 Routes (`routes/` 或 `app.py`) 來擔當，接收請求、調用 Model 索取資料，再將資料傳給 View 進行呈現。
+**Flask 目前擔任的角色 (類 MVC 模式)：**
+- **Model (模型)**：主要放在 `models.py`，負責定義資料結構與進行資料庫存取操作（與 SQLite 銜接）。
+- **View (視圖)**：Jinja2 所渲染的 HTML 模板 (`templates/`)，負責根據得到的資料產出最終畫面給使用者。
+- **Controller (控制器)**：Flask 內的撰寫路由的函式 (`routes.py`)，接收瀏覽器請求後，呼叫對應的 Model，最後指定需要渲染的 View 回傳。
 
 ## 2. 專案資料夾結構
 
-建議採用以下結構以便未來擴充管理：
+專案的結構樹狀圖與職責定義如下：
 
 ```text
-web_app_development/
-├── app/
-│   ├── __init__.py      ← Flask App 初始化、設定資料庫連線
-│   ├── models.py        ← 資料庫模型 (定義庫表 Schema，如 Restaurant, Review)
-│   ├── routes.py        ← Flask 路由 (Controller，處理地圖、搜尋、評分等請求)
-│   ├── templates/       ← Jinja2 HTML 模板
-│   │   ├── base.html       ← 共用版型 (導覽列、頁尾)
-│   │   ├── index.html      ← 首頁 (地圖與地標顯示)
-│   │   ├── search.html     ← 搜尋結果頁
-│   │   ├── detail.html     ← 餐廳詳細資料與評論頁
-│   │   └── add_store.html  ← 新增/編輯餐廳表單
-│   └── static/          ← 靜態資源檔案
-│       ├── css/
-│       │   └── style.css   ← 全域與特定元件樣式
-│       ├── js/
-│       │   └── main.js     ← 處理地圖 API 呼叫、Ajax 及互動邏輯
-│       └── images/         ← 備用圖片或 Logo
+personal_finance_tracker/
+├── app/                  # 應用程式的主體
+│   ├── __init__.py       # app 套件宣告與 Flask APP 初始化設定
+│   ├── app.py            # 啟動應用程式的進入點 (Entry point)
+│   ├── models.py         # 資料操作（Model），負責把對資料庫的存取包裝成函式
+│   ├── routes.py         # 所有的路由設定（Controller），處理對應頁面的邏輯
+│   ├── static/           # 靜態資源 (由前端載入使用)
+│   │   ├── css/
+│   │   │   └── style.css # 全域樣式設定
+│   │   └── js/
+│   │       └── main.js   # 額外前端 JS (例如刪除確認提示)
+│   └── templates/        # Jinja2 的 HTML 模板 (View)
+│       ├── base.html     # 共用骨架模板 (Navbar, Footer, CSS引入)
+│       ├── index.html    # 首頁 (儀表板總覽與近期紀錄)
+│       └── form.html     # 新增或編輯紀錄的表單頁面
+├── docs/                 # 開發文件存放處
+│   ├── PRD.md            # 產品需求文件
+│   └── ARCHITECTURE.md   # [本文件] 系統架構設計
 ├── instance/
-│   └── database.db      ← SQLite 資料庫檔案 (運行後自動產生)
-├── docs/                ← 專案說明文件放置區
-│   ├── PRD.md
-│   └── ARCHITECTURE.md
-├── .gitignore           ← 忽略不需要進 Git 的檔案 (如 instance/ 等)
-├── requirements.txt     ← Python 依賴清單 (如 Flask, Flask-SQLAlchemy)
-└── run.py               ← 專案入口檔，啟動 Flask 伺服器
+│   └── database.db       # SQLite 自動生成的資料庫檔案
+├── .gitignore            # Git 忽略清單 (忽略 instance/, __pycache__/ 等)
+└── README.md             # 說明書
 ```
 
 ## 3. 元件關係圖
 
-以下呈現系統各元件的互動流程：
+以下使用序列圖展示，在這個設計下的元件互動流程：
 
 ```mermaid
 sequenceDiagram
-    participant B as 瀏覽器 (Browser)
-    participant C as Controller (Flask routes)
-    participant M as Model (SQLite/SQLAlchemy)
-    participant V as View (Jinja2 Templates)
+    participant Browser as 瀏覽器 (使用者)
+    participant Route as Flask Route<br>(Controller)
+    participant Model as Database Model
+    participant DB as SQLite 資料庫
+    participant Template as Jinja2 Template<br>(View)
 
-    B->>C: HTTP 請求 (如 /restaurant/1)
-    C->>M: 查詢餐廳與評論資料
-    M-->>C: 回傳資料 (物件/列表)
-    C->>V: 傳遞資料並請求渲染 (render_template)
-    V-->>C: 產生完整的 HTML
-    C-->>B: 回覆 HTTP Response (呈現網頁)
+    Browser->>Route: 發送請求 (例如新增一筆收支 /add)
+    Route->>Model: 將收到的表單資料傳過去請求寫入
+    Model->>DB: 執行 INSERT INTO SQL 指令
+    DB-->>Model: 回傳完成結果
+    Model-->>Route: 回傳處理成功或失敗
+    Route->>Model: 接著請求重新取得收支紀錄列表
+    Model->>DB: 執行 SELECT SQL 指令
+    DB-->>Model: 回傳紀錄
+    Model-->>Route: 回傳資料物件清單
+    Route->>Template: 傳遞資料 (Records) 並請求渲染
+    Template-->>Route: 結合資料產出完整 HTML 內容
+    Route-->>Browser: 回傳 HTML 給使用者顯示
 ```
 
 ## 4. 關鍵設計決策
 
-1. **不採用前後端分離，使用 Server-side Rendering (SSR)**
-   - **原因**：考量到專案時程（約一週）與初學者背景，SSR 能跳過學習 React/Vue 或跨域 CORS 的成本。表單送出或切換頁面皆由 Flask 一手包辦可以最快看見成效。
-2. **採用 SQLAlchemy ORM 取代純 SQL 語句**
-   - **原因**：雖然純 SQL 可以運作，但 ORM 可以使用物件導向的方式操作資料，除了防止 SQL Injection 外，未來對應複雜查詢（例如關聯評論、分類篩選）時的邏輯也較為好寫易懂。
-3. **地圖功能的實作方式**
-   - **原因**：前端部分將依賴 JavaScript 載入建立。後端提供一個可回傳 JSON 格式所有餐廳座標的 API 路由（例如 `/api/restaurants`），讓前端 JavaScript 可以直接抓取經緯度資料並在 JS 地圖圖層中一次把 Maker 標記上去。
-4. **將路由集中於 `routes.py` 或採用 Blueprint**
-   - **原因**：若把所有邏輯都擠在 `run.py` 中會使得程式碼迅速膨脹、難以維護。雖然一開始功能少，但透過 `routes.py` 分離可培養良好的結構習慣；若是未來頁面變多，也能無縫轉換升級為 Flask Blueprints 機制。
+1. **Server-Side Rendering (SSR) 不使用前後端分離 API 架構**
+   - **原因**：目前目的是驗證核心業務邏輯且能盡快完成 MVP，建立 RESTful APIs 並整合前端框架 (如 React) 會大幅增加時程與困難度。直接讓 Flask + Jinja2 處理視圖能最快得到成果，也很適合此種個人記帳運用。
+2. **SQLite 為唯一的資料儲存管道**
+   - **原因**：不需要設定環境即可執行，容易維護與擴展。未來若專案持續擴大，只須變更連線字串而轉向 PostgreSQL 或 MySQL 即可。
+3. **將路由與資料庫層分離 (`routes.py` vs `models.py`)**
+   - **原因**：把資料庫操作分開成 Model 層有助於未來如果我們想要針對資料存取加入新邏輯（比如說加上建立時間欄位、或者是格式化貨幣），可以不用動到 Controller。
+4. **採用 `base.html` 基礎模板繼承**
+   - **原因**：透過 Jinja2 的模板繼承減少程式碼的重複開發。將導覽列（包含總餘額、首頁連結、新增收支等重要捷徑）置於 base 模板，在不同頁面都有固定排版。
