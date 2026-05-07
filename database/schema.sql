@@ -7,3 +7,11 @@ CREATE TABLE IF NOT EXISTS records (
     description TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS mrt_fares (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    start_station TEXT NOT NULL,
+    end_station TEXT NOT NULL,
+    fare INTEGER NOT NULL,
+    UNIQUE(start_station, end_station)
+);

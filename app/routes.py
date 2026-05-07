@@ -1,5 +1,6 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from .models import RecordModel
+from .fare_calculator import calculate_total_fare
 
 bp = Blueprint('routes', __name__)
 
@@ -73,3 +74,29 @@ def delete(record_id):
     RecordModel.delete(record_id)
     flash('紀錄已成功刪除', 'success')
     return redirect(url_for('routes.index'))
+
+@bp.route('/api/v1/fare/calculate', methods=['POST'])
+def calculate_fare():
+    """
+    計算交通總費用 (F-04 模組)
+    接收 JSON 格式：
+    {
+        "transports": [
+            {"type": "bus", "distance_km": 15},
+            {"type": "mrt", "start_station": "G0", "end_station": "G17"},
+            {"type": "youbike", "minutes": 45}
+        ]
+    }
+    """
+    data = request.get_json()
+    if not data or 'transports' not in data:
+        return jsonify({
+            "status": "error",
+            "message": "Invalid request format. 'transports' list is required."
+        }), 400
+
+    transports = data.get('transports', [])
+    result = calculate_total_fare(transports)
+    
+    return jsonify(result), 200
+

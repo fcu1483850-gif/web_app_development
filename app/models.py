@@ -78,3 +78,37 @@ class RecordModel:
         cursor.execute('DELETE FROM records WHERE id = ?', (record_id,))
         conn.commit()
         conn.close()
+
+class FareModel:
+    """處理費率表相關的資料庫存取邏輯"""
+
+    @staticmethod
+    def get_mrt_fare(start_station, end_station):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        # 考慮到起點到終點與終點到起點的票價相同，所以使用 OR 查詢
+        cursor.execute('''
+            SELECT fare FROM mrt_fares 
+            WHERE (start_station = ? AND end_station = ?) 
+               OR (start_station = ? AND end_station = ?)
+        ''', (start_station, end_station, end_station, start_station))
+        record = cursor.fetchone()
+        conn.close()
+        
+        return record['fare'] if record else None
+
+    @staticmethod
+    def insert_mrt_fare(start_station, end_station, fare):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute('''
+                INSERT INTO mrt_fares (start_station, end_station, fare)
+                VALUES (?, ?, ?)
+            ''', (start_station, end_station, fare))
+            conn.commit()
+        except sqlite3.IntegrityError:
+            # 忽略重複插入
+            pass
+        finally:
+            conn.close()
